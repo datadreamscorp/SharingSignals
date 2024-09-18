@@ -1,5 +1,6 @@
 module SharingSignals
 
-greet() = print("Hello World!")
+export initialize_sharing_signals
+include("SharingSignals_ABM.jl")
 
 end # module SharingSignals

@@ -1,38 +1,39 @@
-using StatsBase, Random, Distributions, Agents, Graphs
+using Statistics, Random, Distributions, Agents, Graphs
 
 @agent struct Peep(NoSpaceAgent)
     ###
     B::Float64 #endowment
     payoff::Float64
+    total_payoff::Float64
     reps::Vector{Float64}
     signals::Vector{Bool}
+    comdeg::Int64
+    outdeg::Int64
+    indeg::Int64
 end
 
 
 Base.@kwdef mutable struct Parameters
     #model parameters
     N::Int64
-    B::Vector{Float64}
+    B::Float64
+    sigma::Float64
     b::Float64
     C::Float64
     beta::Float64
     dens::Float64
-    proph::Float64
     comnet::SimpleGraph
     sharenet::SimpleDiGraph
     #data
-    K_dist::Vector{Float64}
-	Kbar::Float64
-	V_dist::Vector{Float64}
-	Vbar::Float64
     tick::Int64
+    total_ticks::Int64
 end
 
 
 social_reward(x; beta = 0.1) = x > 0 ? sum( [exp(-(n-1)*beta) for n in 1:x] ) : 0
 
 function payoff!(a, model)
-    a.payoff = 0 #+ indegree(model.sharenet, a.id)*model.C
+    a.payoff = 0
     total_neighbors = []
     for n in outneighbors(model.sharenet, a.id)
         current_neighbors = neighbors(model.comnet, n)
@@ -42,10 +43,12 @@ function payoff!(a, model)
         total_neighbors = vcat(total_neighbors, current_neighbors)
         a.payoff -= model.C
     end
+    a.total_payoff = a.B + a.payoff + indegree(model.sharenet, a.id)
+
 end
 
 function potential_payoff(a, j, model)
-    pay = 0 #+ indegree(model.sharenet, a.id)*model.C
+    pay = 0
     receivers = outneighbors(model.sharenet, a.id)
     total_neighbors = []
     for n in receivers
@@ -100,6 +103,8 @@ function connect!(model)
 
                 if a.payoff < potential_payoff(a, chosen, model)
                     add_edge!(model.sharenet, a.id, chosen.id)
+                    a.outdeg += 1
+                    chosen.indeg += 1
                     chosen.signals[a.id] = true
                     change_impression!(a, chosen, model)
                     payoff!(a, model)
@@ -109,36 +114,42 @@ function connect!(model)
         end
         
     end
+
+    model.tick += 1
+
 end
 
 function initialize_sharing_signals(;
 	N = 50,
-    B = [5, 1],
+    B = 1.0,
+    sigma = 1.0,
     b = 1,
-    C = 0.1,
+    C = 0.01,
     beta = 2,
     dens = 0.5,
-    proph = 0.1,
+    net_type="random",
     seed = 75648,
+    total_ticks=1000,
 )
 	rng = Xoshiro(seed)
-	
+
+	if net_type == "random"
+        net = dens < 1 ? erdos_renyi(N, dens, seed=seed) : complete_graph(N)
+    end
+
 	properties = Parameters(
 		#model parameters
 	    N,
         B,
+        sigma,
         b,
         C,
         beta,
         dens,
-        proph,
-        dens < 1 ? erdos_renyi(N, dens, seed=seed) : complete_graph(N),
+        net,
         SimpleDiGraph(N),
-        Vector{Float64}(),
-        0.0,
-        Vector{Float64}(),
-        0.0,
-        0
+        0,
+        total_ticks
 	)
 
 	model = StandardABM( 
@@ -150,15 +161,19 @@ function initialize_sharing_signals(;
 	)
 
 	for a in 1:N
-		
-		group = rand(abmrng(model)) < model.proph ? 1 : 2
+        
+        endowment = rand( LogNormal( log(B), log(sigma) ) )
 
 		agent = Peep( 
 			a,
-            B[group],
+            endowment,
 			0.0,
+            endowment,
             repeat([0.0], N),
-            repeat([false], N)
+            repeat([false], N),
+            degree(model.comnet, a),
+            0,
+            0
 		)
         new_a = add_agent!(agent, model)
 		
