@@ -2,7 +2,7 @@ using Statistics, Random, Distributions, Agents, Graphs
 
 @agent struct Peep(NoSpaceAgent)
     ###
-    B::Float64 #endowment
+    endow::Float64 #endowment
     payoff::Float64
     total_payoff::Float64
     reps::Vector{Float64}
@@ -43,7 +43,7 @@ function payoff!(a, model)
         total_neighbors = vcat(total_neighbors, current_neighbors)
         a.payoff -= model.C
     end
-    a.total_payoff = a.B + a.payoff + indegree(model.sharenet, a.id)
+    a.total_payoff = a.endow + a.payoff + indegree(model.sharenet, a.id)
 
 end
 
@@ -94,7 +94,7 @@ function connect!(model)
     for a in shuffle( abmrng(model), allagents(model)|>collect )
 
         k = outdegree(model.sharenet)[a.id]
-        if a.B - (k+1)*model.C > 0
+        if a.endow - (k+1)*model.C > 0
             taken = vcat([a.id], outneighbors(model.sharenet, a.id))
             candidates = filter(p -> p ∉ taken, allids(model)|>collect)
             if length(candidates) > 0

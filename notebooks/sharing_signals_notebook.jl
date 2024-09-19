@@ -7,7 +7,7 @@ using InteractiveUtils
 # ╔═╡ 887a17bf-76fd-445b-a82d-ff5c5e45d3f9
 begin
     using Pkg
-    Pkg.activate(".")
+    Pkg.activate("..")
     using Revise
 	using SharingSignals
     using Agents, Graphs, Statistics
@@ -18,11 +18,11 @@ end
 model = initialize_sharing_signals(
 	N=50, 
 	B=1.0, 
-	sigma=10.0, 
-	b=0.5,
-	C=0.5,
-	beta=1.0,
-	dens=0.1,
+	sigma=2.0, 
+	b=1.0,
+	C=1.0,
+	beta=5.0,
+	dens=0.05,
 	seed=rand(1:1000)
 )
 
@@ -37,7 +37,18 @@ h(k) = ( -(((1 - model.dens)^k - 1)*(model.dens - 1)) + k*model.dens ) / model.d
 
 # ╔═╡ 0df02e4d-b499-4f69-91a2-eb22f96e1fe7
 begin
-	run!(model, 1000, adata=[:payoff])
+	run!(
+		model, 1000, 
+		adata = [
+        :endow,
+        :payoff,
+        :total_payoff,
+        :comdeg,
+        :outdeg,
+        :indeg
+        ],
+		when = 1000
+	)
 	plot(
 		graphplot(model.comnet, curves=false, title="communication"),
 		graphplot(model.sharenet, curves=false, node_weights=[a.payoff for a in allagents(model)|>collect], title="sharing"),
@@ -46,7 +57,7 @@ begin
 end
 
 # ╔═╡ 37543d3a-de17-4372-9077-73ed7ac1f889
-histogram([a.B for a in allagents(model)|>collect])
+histogram([a.endow for a in allagents(model)|>collect])
 
 # ╔═╡ c5ec000b-fc0b-4823-b672-430df33b0933
 scatter(
@@ -60,16 +71,22 @@ cor(
 	indegree(model.sharenet)
 )
 
+# ╔═╡ 04e5a2e0-5660-4075-9015-860fdfb9c2c0
+scatter(
+	[a.endow for a in allagents(model)|>collect],
+	[a.outdeg for a in allagents(model)|>collect]
+)
+
 # ╔═╡ 1e6d1b71-e032-4acd-86a9-448707c74d0d
 scatter(
-	[outdegree(model.sharenet, a.id) for a in allagents(model)|>collect],
+	[a.outdeg for a in allagents(model)|>collect],
 	[a.total_payoff for a in allagents(model)|>collect]
 )
 
-# ╔═╡ 04e5a2e0-5660-4075-9015-860fdfb9c2c0
+# ╔═╡ 4dd4a2b9-d919-4be1-97af-f070e8912db1
 scatter(
-	[a.B for a in allagents(model)|>collect],
-	[outdegree(model.sharenet, a.id) for a in allagents(model)|>collect]
+	[a.endow for a in allagents(model)|>collect],
+	[a.payoff for a in allagents(model)|>collect]
 )
 
 # ╔═╡ bf8b39bf-5f8a-470a-913f-84615bbcb185
@@ -87,12 +104,6 @@ mean([a.payoff for a in allagents(model)|>collect])
 # ╔═╡ 46f4f501-64ae-40e6-be13-c9f35c9fb344
 f(mean(outdegree(model.sharenet)), model.beta)*(model.dens * model.N)*model.b - mean(outdegree(model.sharenet))*model.C
 
-# ╔═╡ 4dd4a2b9-d919-4be1-97af-f070e8912db1
-scatter(
-	[a.B for a in allagents(model)|>collect],
-	[a.payoff for a in allagents(model)|>collect]
-)
-
 # ╔═╡ Cell order:
 # ╠═887a17bf-76fd-445b-a82d-ff5c5e45d3f9
 # ╠═b4bd93d0-1883-452f-8ec1-12b38dd2b61b
@@ -103,11 +114,11 @@ scatter(
 # ╠═37543d3a-de17-4372-9077-73ed7ac1f889
 # ╠═c5ec000b-fc0b-4823-b672-430df33b0933
 # ╠═8f4cda81-1255-4e27-b479-80f0f309f2a6
-# ╠═1e6d1b71-e032-4acd-86a9-448707c74d0d
 # ╠═04e5a2e0-5660-4075-9015-860fdfb9c2c0
+# ╠═1e6d1b71-e032-4acd-86a9-448707c74d0d
+# ╠═4dd4a2b9-d919-4be1-97af-f070e8912db1
 # ╠═bf8b39bf-5f8a-470a-913f-84615bbcb185
 # ╠═57e77f85-a8b5-4ef1-ade0-43bd53574a70
 # ╠═80647b36-c52e-43db-806b-5f81266821dc
 # ╠═48ca717e-90c0-4a9b-bb4f-832c869c96ec
 # ╠═46f4f501-64ae-40e6-be13-c9f35c9fb344
-# ╠═4dd4a2b9-d919-4be1-97af-f070e8912db1

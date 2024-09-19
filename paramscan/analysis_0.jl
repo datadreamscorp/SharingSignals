@@ -12,14 +12,14 @@
     :N => [50, 100],
     :B => 1.0,
     :C => 0.0:0.1:1.0|>collect,
-    :sigma => 1.0:0.1:5.0|>collect,
+    :sigma => 1.0:0.25:3.0|>collect,
     :dens => 0.0:0.05:1.0|>collect,
-    :beta => 0.0:0.5:10.0|>collect,
+    :beta => 0.0:0.5:5.0|>collect,
     :seed => 1000:1010|>collect
 )
 
 	adata = [
-        :B,
+        :endow,
         :payoff,
         :total_payoff,
         :comdeg,
