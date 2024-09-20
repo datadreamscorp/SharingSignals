@@ -16,13 +16,13 @@ end
 
 # ╔═╡ b2d0bb8c-00a8-4930-a7d2-4ccf24ca752d
 model = initialize_sharing_signals(
-	N=50, 
+	N=100, 
 	B=1.0, 
-	sigma=2.0, 
-	b=1.0,
-	C=1.0,
-	beta=5.0,
-	dens=0.05,
+	sigma=3.0, 
+	b=0.5,
+	C=0.1,
+	beta=3.0,
+	dens=0.5,
 	seed=rand(1:1000)
 )
 
@@ -50,8 +50,8 @@ begin
 		when = 1000
 	)
 	plot(
-		graphplot(model.comnet, curves=false, title="communication"),
-		graphplot(model.sharenet, curves=false, node_weights=[a.payoff for a in allagents(model)|>collect], title="sharing"),
+		graphplot(model.comnet, curves=false, title="communication", node_weights=[a.total_payoff for a in sort(allagents(model)|>collect, by=(x -> x.id))]),
+		graphplot(model.sharenet, curves=false, node_weights=[a.total_payoff for a in sort(allagents(model)|>collect, by=(x -> x.id))], title="sharing", nodecolor="red", nodealpha=0.75),
 		layout=(1,2)
 	)
 end
@@ -80,7 +80,7 @@ scatter(
 # ╔═╡ 1e6d1b71-e032-4acd-86a9-448707c74d0d
 scatter(
 	[a.outdeg for a in allagents(model)|>collect],
-	[a.total_payoff for a in allagents(model)|>collect]
+	[a.payoff for a in allagents(model)|>collect]
 )
 
 # ╔═╡ 4dd4a2b9-d919-4be1-97af-f070e8912db1

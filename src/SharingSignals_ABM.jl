@@ -7,8 +7,11 @@ using Statistics, Random, Distributions, Agents, Graphs
     total_payoff::Float64
     reps::Vector{Float64}
     signals::Vector{Bool}
+    comneighbors::Vector{Int64}
     comdeg::Int64
+    share_outneighbors::Vector{Int64}
     outdeg::Int64
+    share_inneighbors::Vector{Int64}
     indeg::Int64
 end
 
@@ -35,25 +38,25 @@ social_reward(x; beta = 0.1) = x > 0 ? sum( [exp(-(n-1)*beta) for n in 1:x] ) : 
 function payoff!(a, model)
     a.payoff = 0
     total_neighbors = []
-    for n in outneighbors(model.sharenet, a.id)
-        current_neighbors = neighbors(model.comnet, n)
+    for n in a.share_outneighbors#outneighbors(model.sharenet, a.id)
+        current_neighbors = model[n].comneighbors
         for t in filter(x -> x ∉ total_neighbors, current_neighbors)
             a.payoff += model[t].reps[a.id]*model.b
         end
         total_neighbors = vcat(total_neighbors, current_neighbors)
         a.payoff -= model.C
     end
-    a.total_payoff = a.endow + a.payoff + indegree(model.sharenet, a.id)
+    a.total_payoff = a.endow + a.payoff + a.indeg*model.C
 
 end
 
 function potential_payoff(a, j, model)
     pay = 0
-    receivers = outneighbors(model.sharenet, a.id)
+    receivers = a.share_outneighbors
     total_neighbors = []
     for n in receivers
-        current_neighbors = neighbors(model.comnet, n)
-        for t in filter(x -> x ∉ vcat(neighbors(model.comnet, j.id), total_neighbors), neighbors(model.comnet, n))
+        current_neighbors = model[n].comneighbors
+        for t in filter(x -> x ∉ vcat(j.comneighbors, total_neighbors), neighbors(model.comnet, n))
             pay += model[t].reps[a.id]*model.b
         end
         total_neighbors = vcat(total_neighbors, current_neighbors)
@@ -61,12 +64,12 @@ function potential_payoff(a, j, model)
     pay -= length(receivers)*model.C
 
     newrep = 0
-    for t in neighbors(model.comnet, j.id)
+    for t in j.comneighbors
         newrep = social_reward(
             sum(
                 [
                     model[m].signals[a.id]        
-                    for m in neighbors(model.comnet, t)
+                    for m in model[t].comneighbors
                 ]
             ) + 1,
             beta = model.beta
@@ -77,12 +80,12 @@ function potential_payoff(a, j, model)
 end
 
 function change_impression!(a, j, model)
-    for n in neighbors(model.comnet, j.id)
+    for n in j.comneighbors
         model[n].reps[a.id] = social_reward(
             sum(
                 [
                     model[m].signals[a.id]
-                    for m in neighbors(model.comnet, n)
+                    for m in model[n].comneighbors
                 ]
             ),
             beta = model.beta
@@ -93,9 +96,9 @@ end
 function connect!(model)
     for a in shuffle( abmrng(model), allagents(model)|>collect )
 
-        k = outdegree(model.sharenet)[a.id]
+        k = a.outdeg #outdegree(model.sharenet)[a.id]
         if a.endow - (k+1)*model.C > 0
-            taken = vcat([a.id], outneighbors(model.sharenet, a.id))
+            taken = vcat([a.id], a.share_outneighbors)
             candidates = filter(p -> p ∉ taken, allids(model)|>collect)
             if length(candidates) > 0
                 
@@ -103,7 +106,9 @@ function connect!(model)
 
                 if a.payoff < potential_payoff(a, chosen, model)
                     add_edge!(model.sharenet, a.id, chosen.id)
+                    a.share_outneighbors = push!(a.share_outneighbors, chosen.id)
                     a.outdeg += 1
+                    chosen.share_inneighbors = push!(a.share_inneighbors, a.id)
                     chosen.indeg += 1
                     chosen.signals[a.id] = true
                     change_impression!(a, chosen, model)
@@ -171,8 +176,11 @@ function initialize_sharing_signals(;
             endowment,
             repeat([0.0], N),
             repeat([false], N),
+            neighbors(model.comnet, a),
             degree(model.comnet, a),
+            [],
             0,
+            [],
             0
 		)
         new_a = add_agent!(agent, model)

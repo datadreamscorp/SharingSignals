@@ -14,8 +14,8 @@
     :C => 0.1:0.1:1.0|>collect,
     :sigma => 1.0:0.1:2.0|>collect,
     :dens => 0.0:0.05:1.0|>collect,
-    :beta => 0.0:0.5:1.0|>collect,
-    :seed => 1000:1001|>collect
+    :beta => 0.5:0.5:1.0|>collect,
+    :seed => 1000:1010|>collect
 )
 
 	adata = [
@@ -35,7 +35,7 @@ adf, _ = paramscan(
             	adata = adata,
             	n = total_ticks,
 		parallel=true,
-		when = total_ticks,
+		when = [total_ticks],
 		showprogress = true
 	)
 

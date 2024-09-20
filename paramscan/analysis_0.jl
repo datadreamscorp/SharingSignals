@@ -11,10 +11,10 @@
 	parameters = Dict( #ALTER THIS DICTIONARY TO DEFINE PARAMETER DISTRIBUTIONS
     :N => [50, 100],
     :B => 1.0,
-    :C => 0.0:0.1:1.0|>collect,
+    :C => 0.1:0.1:1.0|>collect,
     :sigma => 1.0:0.25:3.0|>collect,
-    :dens => 0.0:0.05:1.0|>collect,
-    :beta => 0.0:0.5:5.0|>collect,
+    :dens => 0.0:0.05:0.5|>collect,
+    :beta => 0.5:0.5:3.0|>collect,
     :seed => 1000:1010|>collect
 )
 
@@ -30,13 +30,13 @@
 end
 
 #USE THIS LINE AFTER DEFINITIONS TO BEGIN PARAMETER SCANNING
-_, mdf = paramscan(
-            parameters, initialize_sharing_signals;
-            adata=adata,
-            n = total_ticks,
-			parallel=true,
-			when_model = total_ticks,
-			showprogress = true
+adf, _ = paramscan(
+            	parameters, initialize_sharing_signals;
+            	adata = adata,
+            	n = total_ticks,
+		parallel=true,
+		when = [total_ticks],
+		showprogress = true
 	)
 
-CSV.write("../data/analysis_0.csv", mdf)
+CSV.write("../data/analysis_0.csv", adf)
