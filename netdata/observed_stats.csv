@@ -1,0 +1,2 @@
+share_avg_degree,share_avg_clust,share_median_indegree,share_median_outdegree,share_var_indegree,share_mad_indegree,share_iqr_indegree,share_var_outdegree,share_mad_outdegree,share_iqr_outdegree,share_maximum_indegree,share_zero_indegree_count,share_coreness_avg,pagerank_harvest_corr,gini_indegree,reciprocity_dyad,reciprocity_edge
+8.49090909090909,0.04034121201350631,3.5,3.0,8.939199332777314,2.2239033277584026,3.0,22.682318598832353,4.447806655516805,6.0,15.0,2.0,4.863636363636363,-0.08462659022009698,0.3680942184154177,0.19437340153452684,0.32548179871520344
