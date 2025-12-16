@@ -429,9 +429,7 @@ begin
 		size=(500, 300), dpi=300
 	)
 
-	savefig(harvest_plot, "../images/fig1_harvest.pdf")
-
-	harvest_plot
+	#savefig(harvest_plot, "../images/sup1_harvest.pdf")
 end
 
 # ╔═╡ e22c7a83-bff9-4766-bcf4-071077150b13
@@ -626,7 +624,7 @@ begin
 
 	post_pred_plot = plot_post_pred(prior, post_pred, data_stats)
 
-	savefig(post_pred_plot, "../images/fig4_postpred.pdf")
+	savefig(post_pred_plot, "../images/fig3_postpred.pdf")
 
 	post_pred_plot
 end
@@ -902,7 +900,7 @@ begin
 
 	nethist_plot = net_hist(model, data_net)
 
-	savefig(nethist_plot, "../images/fig5_nethist.pdf")
+	savefig(nethist_plot, "../images/fig4_nethist.pdf")
 
 	nethist_plot
 end
@@ -1038,7 +1036,7 @@ begin
 		size=(600,600)
 	)
 
-	savefig(coreplot, "../images/fig6_coreplot.pdf")
+	savefig(coreplot, "../images/fig5_coreplot.pdf")
 
 	coreplot
 end
@@ -1131,7 +1129,7 @@ begin
 		size=(1200,600), dpi=300
 	)
 
-	savefig(postpred_nbt, "../images/fig8_nbt.pdf")
+	savefig(postpred_nbt, "../images/fig6_nbt.pdf")
 
 	postpred_nbt
 end
@@ -1229,15 +1227,20 @@ begin
 		layout=(2,1)
 	)
 
-	savefig(corrplot, "../images/fig2_corr.pdf")
-
-	corrplot
+	#savefig(corrplot, "../images/sup2_corr.pdf")
 end
+
+# ╔═╡ 948cf817-93c1-4588-b8d6-77f76e97b85c
+md"""
+##### Model fit using variance of outdegree
+"""
 
 # ╔═╡ b184ffd2-e1c7-495b-b22d-d4f6b6ed742c
 begin
 	post_pred_var = CSV.read("../data/post_pred_var.csv", DataFrame)
-	plot_post_pred(prior, post_pred_var, data_stats)
+	plot_ppv = plot_post_pred(prior, post_pred_var, data_stats)
+
+	#savefig(plot_ppv, "../images/sup3_post_pred_var.pdf")
 end
 
 # ╔═╡ a71a0b62-88cd-4408-8280-742c73d2d8bf
@@ -1264,7 +1267,9 @@ begin
 	var_comm = plot_posterior_samples(varpost, prior, comm_specs; ncols=1, rounds=rounds, pal=:binary)
 	
 	#tile them side by side
-	plot(var_pref, var_comm; layout=(1,2), size=(800,600))
+	post_var = plot(var_pref, var_comm; layout=(1,2), size=(800,600))
+
+	#savefig(post_var, "../images/sup4_post_var.pdf")
 end
 
 # ╔═╡ 495fd3a4-d532-42ce-a033-e64edcc3ca62
@@ -1334,7 +1339,9 @@ begin
 		when_model = 1000
 	)
 	
-	net_hist(var_model, data_net, model_inbins=50, model_outbins=50)
+	nethist_var = net_hist(var_model, data_net, model_inbins=50, model_outbins=50)
+
+	#savefig(nethist_var, "../images/sup5_nethist_var.pdf")
 end
 
 # ╔═╡ d7a85cfd-bbeb-40a0-a28f-76e284342306
@@ -1345,12 +1352,14 @@ begin
 		layout=(1,2), dpi=300
 	)
 	
-	plot(
+	coreplot_var = plot(
 		netplots_var,
 		plot_core(data_net, var_model.sharenet, maxcore=11),
 		layout=(2,1),
 		size=(600,600)
 	)
+
+	#savefig(coreplot_var, "../images/sup6_coreplot_var.pdf")
 end
 
 # ╔═╡ 65c84d64-3c4c-4e43-8b96-76cf5261c557
@@ -2190,6 +2199,7 @@ end
 # ╟─85943361-ab1e-4266-9c59-c4184b49948f
 # ╟─8db4d3f1-5060-46a6-a9ff-4ca2941b5247
 # ╟─0c11b8f6-3c9d-4683-a26b-f378d3c7d435
+# ╟─948cf817-93c1-4588-b8d6-77f76e97b85c
 # ╟─b184ffd2-e1c7-495b-b22d-d4f6b6ed742c
 # ╟─a71a0b62-88cd-4408-8280-742c73d2d8bf
 # ╟─495fd3a4-d532-42ce-a033-e64edcc3ca62
